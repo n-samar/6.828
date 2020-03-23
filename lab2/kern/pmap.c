@@ -179,7 +179,14 @@ mem_init(void)
 	//      (ie. perm = PTE_U | PTE_P)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
-
+	
+	boot_map_region(kern_pgdir, (uintptr_t)UPAGES,
+			ROUNDUP(npages*sizeof(struct PageInfo), PGSIZE),
+			(physaddr_t)PTE_ADDR((char*)pages-KERNBASE), PTE_U | PTE_P);
+	boot_map_region(kern_pgdir, (uintptr_t)PTE_ADDR(pages),
+			ROUNDUP(npages*sizeof(struct PageInfo), PGSIZE),
+			(physaddr_t)PTE_ADDR((char*)pages-KERNBASE), PTE_W | PTE_P);	
+	
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
 	// stack.  The kernel stack grows down from virtual address KSTACKTOP.
@@ -192,6 +199,10 @@ mem_init(void)
 	//     Permissions: kernel RW, user NONE
 	// Your code goes here:
 
+	boot_map_region(kern_pgdir, (uintptr_t)(KSTACKTOP-KSTKSIZE),
+			ROUNDUP(KSTKSIZE, PGSIZE),
+			(physaddr_t)PTE_ADDR((char*)bootstack-KERNBASE), PTE_W | PTE_P);
+	
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
 	// Ie.  the VA range [KERNBASE, 2^32) should map to
@@ -201,6 +212,10 @@ mem_init(void)
 	// Permissions: kernel RW, user NONE
 	// Your code goes here:
 
+	boot_map_region(kern_pgdir, (uintptr_t)KERNBASE,
+			ROUNDUP((unsigned int)(~0)-KERNBASE+1, PGSIZE),
+			(physaddr_t)0x0, PTE_W | PTE_P);
+	
 	// Check that the initial page directory has been set up correctly.
 	check_kern_pgdir();
 
@@ -275,14 +290,14 @@ page_init(void)
 			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;
 		} else {
-			if (i * PGSIZE + KERNBASE < (size_t)nextfree) {
+			if (i * PGSIZE + KERNBASE > (size_t)nextfree && i * PGSIZE < 0xE000000) {
 				// in use for page tables
-				pages[i].pp_ref = 1;
-				pages[i].pp_link = NULL;				
-			} else {
 				pages[i].pp_ref = 0;
 				pages[i].pp_link = page_free_list;
 				page_free_list = &pages[i];
+			} else {
+				pages[i].pp_ref = 1;
+				pages[i].pp_link = NULL;				
 			}
 		}
 	}
@@ -403,9 +418,9 @@ static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
 	pte_t *pte;
-	for (uintptr_t va_i = va; va_i < va + size; ++va_i) {
-		(*pgdir_walk(pgdir, (void*)va, 1)) |= ((perm|PTE_P) & 0xFFF);
-		(*pgdir_walk(pgdir, (void*)va, 1)) |= (~0xFFF & ((pa+va_i-va) << 12));
+	for (uintptr_t va_i = 0; va_i < size; va_i+=PGSIZE) {
+		pte = pgdir_walk(pgdir, (void*)(va+va_i), 1);
+		(*pte) = ((perm|PTE_P) & 0xFFF) | (~0xFFF & (pa+va_i));
 	}
 }
 
