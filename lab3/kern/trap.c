@@ -9,6 +9,26 @@
 #include <kern/env.h>
 #include <kern/syscall.h>
 
+void divide_handler();
+void debug_handler();
+void nmi_handler();
+void brkpt_handler();
+void oflow_handler();
+void bound_handler();
+void illop_handler();
+void device_handler();
+void dblflt_handler();
+void tss_handler();
+void segnp_handler();
+void stack_handler();
+void gpflt_handler();
+void pgflt_handler();
+void fperr_handler();
+void align_handler();
+void mchk_handler();
+void simderr_handler();
+void syscall_handler();
+
 static struct Taskstate ts;
 
 /* For debugging, so print_trapframe can distinguish between printing
@@ -64,8 +84,42 @@ trap_init(void)
 {
 	extern struct Segdesc gdt[];
 
+// Set up a normal interrupt/trap gate descriptor.
+// - istrap: 1 for a trap (= exception) gate, 0 for an interrupt gate.
+	//   see section 9.6.1.3 of the i386 reference: "The difference between
+	//   an interrupt gate and a trap gate is in the effect on IF (the
+	//   interrupt-enable flag). An interrupt that vectors through an
+	//   interrupt gate resets IF, thereby preventing other interrupts from
+	//   interfering with the current interrupt handler. A subsequent IRET
+	//   instruction restores IF to the value in the EFLAGS image on the
+	//   stack. An interrupt through a trap gate does not change IF."
+// - sel: Code segment selector for interrupt/trap handler
+// - off: Offset in code segment for interrupt/trap handler
+// - dpl: Descriptor Privilege Level -
+//	  the privilege level required for software to invoke
+//	  this interrupt/trap gate explicitly using an int instruction.
+	
 	// LAB 3: Your code here.
-
+	
+	SETGATE(idt[T_DIVIDE], 1, 0x8, divide_handler, 0);
+	SETGATE(idt[T_DEBUG], 1, 0x8, debug_handler, 0);
+	SETGATE(idt[T_NMI], 1, 0x8, nmi_handler, 0);
+	SETGATE(idt[T_BRKPT], 1, 0x8, brkpt_handler, 3);
+	SETGATE(idt[T_OFLOW], 1, 0x8, oflow_handler, 0);
+	SETGATE(idt[T_BOUND], 1, 0x8, bound_handler, 0);
+	SETGATE(idt[T_ILLOP], 1, 0x8, illop_handler, 0);
+	SETGATE(idt[T_DEVICE], 1, 0x8, device_handler, 0);
+	SETGATE(idt[T_DBLFLT], 1, 0x8, dblflt_handler, 0);
+	SETGATE(idt[T_TSS], 1, 0x8, tss_handler, 0);
+	SETGATE(idt[T_SEGNP], 1, 0x8, segnp_handler, 0);
+	SETGATE(idt[T_STACK], 1, 0x8, stack_handler, 0);
+	SETGATE(idt[T_GPFLT], 1, 0x8, gpflt_handler, 0);
+	SETGATE(idt[T_PGFLT], 1, 0x8, pgflt_handler, 0);
+	SETGATE(idt[T_FPERR], 1, 0x8, fperr_handler, 0);
+	SETGATE(idt[T_ALIGN], 1, 0x8, align_handler, 0);
+	SETGATE(idt[T_MCHK], 1, 0x8, mchk_handler, 0);
+	SETGATE(idt[T_SIMDERR], 1, 0x8, simderr_handler, 0);
+	SETGATE(idt[T_SYSCALL], 1, 0x8, syscall_handler, 3);	
 	// Per-CPU setup 
 	trap_init_percpu();
 }
@@ -145,14 +199,23 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
 
+	if (tf->tf_trapno == T_PGFLT) {
+		page_fault_handler(tf);
+	} else if (tf->tf_trapno == T_BRKPT) {
+		monitor(tf);
+	} else if (tf->tf_trapno == T_SYSCALL) {
+		tf->tf_regs.reg_eax = syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx,
+			tf->tf_regs.reg_ecx, tf->tf_regs.reg_ebx,
+			tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
+		return;
+	}
+	
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
 		panic("unhandled trap in kernel");
-	else {
+	else
 		env_destroy(curenv);
-		return;
-	}
 }
 
 void
@@ -206,6 +269,11 @@ page_fault_handler(struct Trapframe *tf)
 
 	// LAB 3: Your code here.
 
+	if ((tf->tf_cs & 3) != 3) {
+		// trapped in kernel mode
+		panic("unhandled page fault in kernel");
+	}
+	
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
 
