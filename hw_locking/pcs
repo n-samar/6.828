@@ -1,0 +1,124 @@
+pcs[0]:1:spinlock.c:15:  lk->name = name;
+pcs[0]:2:spinlock.c:16:  lk->locked = 0;
+pcs[0]:3:spinlock.c:17:  lk->cpu = 0;
+pcs[0]:4:spinlock.c:32:  while(xchg(&lk->locked, 1) != 0)
+pcs[0]:5:spinlock.c:41:  lk->cpu = mycpu();
+pcs[0]:6:spinlock.c:42:  getcallerpcs(&lk, lk->pcs);
+pcs[0]:7:spinlock.c:52:  lk->pcs[0] = 0;
+pcs[0]:8:spinlock.c:53:  lk->cpu = 0;
+pcs[0]:9:spinlock.c:62:  // Release the lock, equivalent to lk->locked = 0.
+pcs[0]:10:spinlock.c:65:  asm volatile("movl $0, %0" : "+m" (lk->locked) : );
+pcs[0]:11:TRICKS:101:to memory before the write of lk->locked = 0 in 
+pcs[0]:12:TRICKS:103:will observe CPU0's write of lk->locked = 0 only
+pcs[0]:13:sleeplock.c:16:  initlock(&lk->lk, "sleep lock");
+pcs[0]:14:sleeplock.c:17:  lk->name = name;
+pcs[0]:15:sleeplock.c:18:  lk->locked = 0;
+pcs[0]:16:sleeplock.c:19:  lk->pid = 0;
+pcs[0]:17:sleeplock.c:25:  acquire(&lk->lk);
+pcs[0]:18:sleeplock.c:26:  while (lk->locked) {
+pcs[0]:19:sleeplock.c:27:    sleep(lk, &lk->lk);
+pcs[0]:20:sleeplock.c:29:  lk->locked = 1;
+pcs[0]:21:sleeplock.c:30:  lk->pid = myproc()->pid;
+pcs[0]:22:sleeplock.c:31:  release(&lk->lk);
+pcs[0]:23:sleeplock.c:37:  acquire(&lk->lk);
+pcs[0]:24:sleeplock.c:38:  lk->locked = 0;
+pcs[0]:25:sleeplock.c:39:  lk->pid = 0;
+pcs[0]:26:sleeplock.c:41:  release(&lk->lk);
+pcs[0]:27:sleeplock.c:49:  acquire(&lk->lk);
+pcs[0]:28:sleeplock.c:50:  r = lk->locked && (lk->pid == myproc()->pid);
+pcs[0]:29:sleeplock.c:51:  release(&lk->lk);
+pcs[0]:30:kernel.asm:8135:  initlock(&lk->lk, "sleep lock");
+pcs[0]:31:kernel.asm:8140:  lk->name = name;
+pcs[0]:32:kernel.asm:8142:  lk->locked = 0;
+pcs[0]:33:kernel.asm:8144:  lk->pid = 0;
+pcs[0]:34:kernel.asm:8147:  lk->pid = 0;
+pcs[0]:35:kernel.asm:8149:  lk->name = name;
+pcs[0]:36:kernel.asm:8168:  acquire(&lk->lk);
+pcs[0]:37:kernel.asm:8173:  while (lk->locked) {
+pcs[0]:38:kernel.asm:8179:    sleep(lk, &lk->lk);
+pcs[0]:39:kernel.asm:8184:  while (lk->locked) {
+pcs[0]:40:kernel.asm:8190:  lk->locked = 1;
+pcs[0]:41:kernel.asm:8192:  lk->pid = myproc()->pid;
+pcs[0]:42:kernel.asm:8196:  release(&lk->lk);
+pcs[0]:43:kernel.asm:8203:  release(&lk->lk);
+pcs[0]:44:kernel.asm:8218:  acquire(&lk->lk);
+pcs[0]:45:kernel.asm:8223:  lk->locked = 0;
+pcs[0]:46:kernel.asm:8225:  lk->pid = 0;
+pcs[0]:47:kernel.asm:8230:  release(&lk->lk);
+pcs[0]:48:kernel.asm:8238:  release(&lk->lk);
+pcs[0]:49:kernel.asm:8257:  acquire(&lk->lk);
+pcs[0]:50:kernel.asm:8261:  r = lk->locked && (lk->pid == myproc()->pid);
+pcs[0]:51:kernel.asm:8272:  release(&lk->lk);
+pcs[0]:52:kernel.asm:8301:  lk->name = name;
+pcs[0]:53:kernel.asm:8303:  lk->locked = 0;
+pcs[0]:54:kernel.asm:8305:  lk->name = name;
+pcs[0]:55:kernel.asm:8307:  lk->cpu = 0;
+pcs[0]:56:kernel.asm:8516:  while(xchg(&lk->locked, 1) != 0)
+pcs[0]:57:kernel.asm:8521:  lk->cpu = mycpu();
+pcs[0]:58:kernel.asm:8524:  getcallerpcs(&lk, lk->pcs);
+pcs[0]:59:kernel.asm:8526:  lk->cpu = mycpu();
+pcs[0]:60:kernel.asm:8600:  lk->pcs[0] = 0;
+pcs[0]:61:kernel.asm:8602:  lk->cpu = 0;
+pcs[0]:62:kernel.asm:8606:  asm volatile("movl $0, %0" : "+m" (lk->locked) : );
+spinlock.c:15:  lk->name = name;
+spinlock.c:16:  lk->locked = 0;
+spinlock.c:17:  lk->cpu = 0;
+spinlock.c:32:  while(xchg(&lk->locked, 1) != 0)
+spinlock.c:41:  lk->cpu = mycpu();
+spinlock.c:42:  getcallerpcs(&lk, lk->pcs);
+spinlock.c:52:  lk->pcs[0] = 0;
+spinlock.c:53:  lk->cpu = 0;
+spinlock.c:62:  // Release the lock, equivalent to lk->locked = 0.
+spinlock.c:65:  asm volatile("movl $0, %0" : "+m" (lk->locked) : );
+TRICKS:101:to memory before the write of lk->locked = 0 in 
+TRICKS:103:will observe CPU0's write of lk->locked = 0 only
+sleeplock.c:16:  initlock(&lk->lk, "sleep lock");
+sleeplock.c:17:  lk->name = name;
+sleeplock.c:18:  lk->locked = 0;
+sleeplock.c:19:  lk->pid = 0;
+sleeplock.c:25:  acquire(&lk->lk);
+sleeplock.c:26:  while (lk->locked) {
+sleeplock.c:27:    sleep(lk, &lk->lk);
+sleeplock.c:29:  lk->locked = 1;
+sleeplock.c:30:  lk->pid = myproc()->pid;
+sleeplock.c:31:  release(&lk->lk);
+sleeplock.c:37:  acquire(&lk->lk);
+sleeplock.c:38:  lk->locked = 0;
+sleeplock.c:39:  lk->pid = 0;
+sleeplock.c:41:  release(&lk->lk);
+sleeplock.c:49:  acquire(&lk->lk);
+sleeplock.c:50:  r = lk->locked && (lk->pid == myproc()->pid);
+sleeplock.c:51:  release(&lk->lk);
+kernel.asm:8135:  initlock(&lk->lk, "sleep lock");
+kernel.asm:8140:  lk->name = name;
+kernel.asm:8142:  lk->locked = 0;
+kernel.asm:8144:  lk->pid = 0;
+kernel.asm:8147:  lk->pid = 0;
+kernel.asm:8149:  lk->name = name;
+kernel.asm:8168:  acquire(&lk->lk);
+kernel.asm:8173:  while (lk->locked) {
+kernel.asm:8179:    sleep(lk, &lk->lk);
+kernel.asm:8184:  while (lk->locked) {
+kernel.asm:8190:  lk->locked = 1;
+kernel.asm:8192:  lk->pid = myproc()->pid;
+kernel.asm:8196:  release(&lk->lk);
+kernel.asm:8203:  release(&lk->lk);
+kernel.asm:8218:  acquire(&lk->lk);
+kernel.asm:8223:  lk->locked = 0;
+kernel.asm:8225:  lk->pid = 0;
+kernel.asm:8230:  release(&lk->lk);
+kernel.asm:8238:  release(&lk->lk);
+kernel.asm:8257:  acquire(&lk->lk);
+kernel.asm:8261:  r = lk->locked && (lk->pid == myproc()->pid);
+kernel.asm:8272:  release(&lk->lk);
+kernel.asm:8301:  lk->name = name;
+kernel.asm:8303:  lk->locked = 0;
+kernel.asm:8305:  lk->name = name;
+kernel.asm:8307:  lk->cpu = 0;
+kernel.asm:8516:  while(xchg(&lk->locked, 1) != 0)
+kernel.asm:8521:  lk->cpu = mycpu();
+kernel.asm:8524:  getcallerpcs(&lk, lk->pcs);
+kernel.asm:8526:  lk->cpu = mycpu();
+kernel.asm:8600:  lk->pcs[0] = 0;
+kernel.asm:8602:  lk->cpu = 0;
+kernel.asm:8606:  asm volatile("movl $0, %0" : "+m" (lk->locked) : );

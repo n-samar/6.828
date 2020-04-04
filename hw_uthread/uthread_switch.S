@@ -1,0 +1,28 @@
+	.text
+
+/* Switch from current_thread to next_thread. Make next_thread
+ * the current_thread, and set next_thread to 0.
+ * Use eax as a temporary register; it is caller saved.
+ */
+	.globl thread_switch
+thread_switch:
+	/* YOUR CODE HERE */
+
+	// Save registers
+	pushal	
+	// Save current stack pointer
+	movl current_thread, %eax
+	movl %esp, (%eax)
+
+	// Set next_thread esp
+	movl next_thread, %eax
+	movl (%eax), %esp
+
+	// move current_thread to point to next_thread
+	movl %eax, current_thread
+
+
+	// Restore registers
+	popal
+	
+	ret				/* pop return address from stack */
