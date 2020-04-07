@@ -115,16 +115,16 @@ f0100082:	e8 55 13 00 00       	call   f01013dc <mem_init>
 f0100087:	e8 9b 33 00 00       	call   f0103427 <env_init>
 	trap_init();
 f010008c:	e8 1a 3b 00 00       	call   f0103bab <trap_init>
-
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
-f0100091:	83 c4 08             	add    $0x8,%esp
-f0100094:	6a 00                	push   $0x0
-f0100096:	ff b3 f8 ff ff ff    	pushl  -0x8(%ebx)
-f010009c:	e8 8a 35 00 00       	call   f010362b <env_create>
+#else
 	// Touch all you want.
 	ENV_CREATE(user_hello, ENV_TYPE_USER);
+f0100091:	83 c4 08             	add    $0x8,%esp
+f0100094:	6a 00                	push   $0x0
+f0100096:	ff b3 f4 ff ff ff    	pushl  -0xc(%ebx)
+f010009c:	e8 8a 35 00 00       	call   f010362b <env_create>
 #endif // TEST*
 
 	// We only have one user environment for now, so just run it.
@@ -957,7 +957,7 @@ f010078e:	50                   	push   %eax
 f010078f:	e8 64 33 00 00       	call   f0103af8 <cprintf>
 	cprintf("  _start                  %08x (phys)\n", _start);
 f0100794:	83 c4 08             	add    $0x8,%esp
-f0100797:	ff b3 f4 ff ff ff    	pushl  -0xc(%ebx)
+f0100797:	ff b3 f8 ff ff ff    	pushl  -0x8(%ebx)
 f010079d:	8d 83 38 49 f8 ff    	lea    -0x7b6c8(%ebx),%eax
 f01007a3:	50                   	push   %eax
 f01007a4:	e8 4f 33 00 00       	call   f0103af8 <cprintf>
